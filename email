@@ -1,0 +1,54 @@
+Chris,
+
+Let's try this first, and if it doesn't work well, let me know and we'll try something different.
+I've attached two fortran programs refine4q.f and ziptree4q.f
+Your fortran compiler needs to be able to do quad precision (about 33 digits of working precision). For example gfortran is freely available Intel fortran is better but you have to pay for it, both have quad precision.  If CPU time becomes a consideration for your trees, then I can send you the double precision version (about 16 digits of working precision). It should be about 9 times faster, but you might want to compare the pictures you get for some cases to see if they are reasonably close.
+ 
+The input: refine4q will prompt you for the name of a file with
+ the "matching" data: label the edgesides of your 
+tree counterclockwise 1,...,2n. Then make a two column list:
+ the first column has the numbers 1,...,2n and the second 
+column gives the matching: j k  in a row means that an
+ edge will have j on one side and k on the other.
+
+Then run the program refine4q. It refines the matching so
+ that each edge of the tree will have k subintervals.
+ You get to input k. Try 10, or for a tree with a huge
+ number of edges, try 4.
+This creates a larger matching list, match.dat, and a list of 
+endpoints on the unit circle, tree.dat. The intervals corresponding 
+to the edges of the tree are of equal size, but they 
+have been subdivided because of the refinement. The sizes
+ of the refined intervals are more complicated because you'd
+ like the image points on the tree to be roughly equally spaced
+  so that the pictures look good. If they were equally spaced
+ you'd have too many points near the middle of the edges and 
+not enough near the vertices to get reasonable pictures and 
+a reasonable approximant to the tree. The tree is still balanced.
+
+Then run ziptree4q.    It will ask you if you want interior points - just enter 0 (for no). If you really did want to see what the image of the disk is, then you'll need a file of points in the disk (you might for example scale the points in tree.dat at least near the boundary, to get reasonable curves). .
+
+The output tree is in tree.img   It consists of two columns - each row is a point in the plane, Your graphing program should just connect the dots to get the picture of the tree.
+
+
+Feel free to ask questions - happy to help.
+
+Let me know how it goes, and send me some pictures.
+
+Don
+
+
+On Wed, May 3, 2017 at 8:56 PM, Christopher Bishop <bishop@math.stonybrook.edu> wrote:
+
+
+    I had not thought a great deal about this yet, but mostly I wanted to illustrate my "true trees are dense" result with some examples that show how a given shape can be approximated in practice.  I would guess that getting a nice looking fit to some common shapes, e.g.,  the letter S or a simple stick drawing, would take a true tree with a few hundred edges. My initial idea was to draw a tree I want to approximate, subdivide the edges, estimate the harmonic measure of each side ( by conformal mapping or just throwing lots of random walks at it), add extra edges to sides with excessive harmonic measure and see what happens. Then fix it by hand (eventually try to automate the process of adding or deleting edges to the tree to make the corresponding true tree fit a given target; this is the part I thought I might leave to a student project if I can get the basic idea to work).
+
+    For this I don't care about thousands of digits; just enough to make the output look correct (although perhaps higher accuracy needs to be carried out internally to return a few good digits).  The PSLQ stuff sounds very interesting, and I would like to learn more about it, but its not what I had in mind in my email.
+
+    Thus I would prefer something that is easy to use and outputs a picture (or really the list of segments that approximates a true tree and that I could then plot in another program).  I primarily use a  linux machine at work and would prefer to work with that, but I can get access to  a windows machine if that makes things easier (I have a windows machine at home and a windows laptop, but I often just use these as terminals to connect to the linux machine at work).  Having described what I have in mind, I am happy to take your advice about the best way to accomplish it.
+
+    Chris
+
+
+
+
