@@ -1,7 +1,7 @@
 
 % letter C 
 
-   n=20;
+   n=10;
    m=4;
 
    match=path(n);

@@ -14,7 +14,7 @@ function tree_verts = call_marshall(list)
 
    % run Marshall's program on the data
    PATH = getenv('PATH');
-setenv('PATH', [PATH ':/Users/joseph/Dropbox/Marshall']);
+setenv('PATH', [PATH ':/~/Documents/Marshall']);
     unix('echo $PATH');
    unix('executable < refine4q.input');
    unix('executable2 < ziptree4q.input');
