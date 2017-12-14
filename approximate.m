@@ -1,7 +1,7 @@
 
 
 function  approximate(pointer,iter1,iter2, ratio)
-   num=20;
+   num=10;
    m=4;
    counter=0;
    while counter<iter1
@@ -12,7 +12,7 @@ function  approximate(pointer,iter1,iter2, ratio)
       for c=1:size(match,1)/2
           newMatch = match;
           m1 = measure(c);
-          disp(match);
+          %disp(match);
           m2 = measure(match(c,2));
           if m1>ratio*m2
               smalls(match(c,2))=1;
@@ -20,11 +20,12 @@ function  approximate(pointer,iter1,iter2, ratio)
               smalls(c)=1;
           end              
       end
-    
-      for c=1:size(match,1)
-          newMatch = match;
+      
+      search=1;
+      offset=0;
+      newMatch = match;
+      for i=1:size(smalls,2);
           if smalls(c)>0
-              disp('asd');
               newEdge=path(num);
               for k=2:num-2
                 for j=1:m
@@ -35,7 +36,7 @@ function  approximate(pointer,iter1,iter2, ratio)
           end              
     end
     counter=counter+1;
-   end
+    end
    
    call_marshall(newMatch);
    
