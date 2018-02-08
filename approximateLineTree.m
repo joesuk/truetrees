@@ -37,6 +37,7 @@ function  approximateLineTree(pointer,num,numBranches,ratio)
    end
    
    edgeHarmonicMeasures = flipud(edgeHarmonicMeasures);
+   MeasuresArrayTwoColumns = zeros(size(v,1),2);
    
    
    w1 = flipud(vertex(P));
@@ -57,6 +58,8 @@ function  approximateLineTree(pointer,num,numBranches,ratio)
        end
    end
    
+   disp(vertices);
+   disp(edgeHarmonicMeasures);
    
    [match,starts,ends]=pointer2match(newPointer);
    largeMeasures=zeros(size(match,1),1); % array of half edges with value 1 if harmonic measure at half-edge is too large compared to harmonic measure
@@ -71,26 +74,31 @@ function  approximateLineTree(pointer,num,numBranches,ratio)
             end
    end
    
+   
+   % change size to accomodate new vertices
+   n=size(vertices,1);
+   
 
    % determine which half-edge pairs have imbalanced harmonic measure
    % through the use of 
-   for i=1:size(vertex(P),1)
+   for i=1:n
        v1=0;v2=0;
        harmonicMsr1=0;
        harmonicMsr2=0;
-       if i==size(vertex(P),1)
-           v1=vertices(n);
-           v2=vertices(1);
-           harmonicMsr1=edgeHarmonicMeasures(n);
+       if i==1
+           v1=vertices(1);
+           v2=vertices(n); 
+           harmonicMsr1=edgeHarmonicMeasures(1);
            [index1,index2]=findVertices(v1,vertices);
            index=index1;
-           if index1==n
+           if index1==1
                index=index2;
            end
-           harmonicMsr2=edgeHarmonicMeasures(index);
+           harmonicMsr2=edgeHarmonicMeasures(index+1);
        else
            v1=vertices(i);
-           % disp(i);
+           v2=vertices(i-1);
+           
            harmonicMsr1=edgeHarmonicMeasures(i);
            [index1,index2]=findVertices(v1,vertices);
            index=index1;
@@ -101,7 +109,12 @@ function  approximateLineTree(pointer,num,numBranches,ratio)
            if index2==0
                index=index1
            end
-           harmonicMsr2=edgeHarmonicMeasures(index);
+           
+           if (index==n)
+               index=0;
+           end
+           
+           harmonicMsr2=edgeHarmonicMeasures(index+1);
        end
        
        if v1~=v2
@@ -128,7 +141,6 @@ function  approximateLineTree(pointer,num,numBranches,ratio)
    % make the new tree with auxiliary edges in matching format.
    
   newMatch = match;
-  %buildTree = TRUE;
   counter = 0;
   
   for i=1:size(largeMeasures,1)
@@ -170,17 +182,17 @@ function  approximateLineTree(pointer,num,numBranches,ratio)
    function [indexEdge1,indexEdge2]=findEdges(pointer,v1,v2)
         indexEdge1=0;indexEdge2=0;
         for i=1:size(pointer,1)
-            if i>1 && pointer(i,2)==v2 && pointer(i-1,2)==v1
+            if i>1 && pointer(i,2)==v1 && pointer(i-1,2)==v2
                indexEdge1=i-1;
-            elseif i==1 && pointer(i,2)==v2 && pointer(size(pointer,1),2)==v1
+            elseif i==1 && pointer(i,2)==v1 && pointer(size(pointer,1),2)==v2
                 indexEdge1=size(pointer,1);
             end
         end
         
         for i=1:size(pointer,1)
-            if i>1 && pointer(i,2)==v1 && pointer(i-1,2)==v2
+            if i>1 && pointer(i,2)==v2 && pointer(i-1,2)==v1
                 indexEdge2=i-1;
-            elseif i==1 && pointer(i,2)==v1 && pointer(size(pointer,1),2)==v2
+            elseif i==1 && pointer(i,2)==v2 && pointer(size(pointer,1),2)==v1
                 indexEdge2=size(pointer,1);
             end
         end
