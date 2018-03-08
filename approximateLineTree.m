@@ -1,75 +1,104 @@
 % Tree should have one leaf node or one leaf node and one root.
 
-function  approximateLineTree(pointer,num,numBranches,ratio)
+function approximateLineTree(pointer,num,numBranches,ratio)
    start=pointer(1,2); % should be a leaf node/root.
    n=size(pointer,1);
    p=pointer(1,2);
+   
    for i=2:n
        point1 = pointer(pointer(i,1),2);
        point2 = pointer(i,2);
        zcents = point1+(1:num)*(point2-point1)/num;
        p=horzcat(p,zcents);    
    end
+   newVertices=p.';
 
    p=horzcat(p,fliplr(p(1:size(p,2)-1)));
-   P=polygon(p.');
-   m=extermap(P);
-   v=angle(get(m,'pre'))/pi;
+   p=p.';
+   P=polygon(p);
    
-   % fix v so that no negative values
-   for i=1:size(v,1)
-       if v(i)<=0 && i~=1
-           v(i)=v(i)+2;
+   [vertices,edgeHarmonicMeasures]=findHarmonicMeasure(P);
+           
+   [match,largeMeasures,ratios]=getLargeMeasures(ratio,start,newVertices,vertices,edgeHarmonicMeasures);
+
+   % make the new tree with auxiliary edges in matching format.
+   
+   newMatch = match;
+   counter = 0;
+  
+  for i=1:size(largeMeasures,1)
+    if largeMeasures(i)>0
+        
+        
+        numBranchestoAdd = round(abs(log(ratios(i)))*numBranches/4);
+
+        for j=1:numBranchestoAdd
+            newMatch=insert_edge(newMatch,i+counter);            
+        end 
+        
+        %{
+        for j=1:numBranches
+            newMatch=insert_edge(newMatch,i+counter);            
+        end 
+        %}
+        
+                
+        %newMatch=insert_tree(newMatch,path(numBranches),i+counter);
+        
+        
+        % counter = counter+2*numBranches; % change indexing to fit newly inserted edges.
+        
+        counter = counter+2*numBranchestoAdd; % change indexing to fit newly inserted edges.
+    end 
+  end
+  
+  tree_verts=call_marshall2(newMatch);
+  theta=  -25 * pi/180;
+  verts=rotate_tree(tree_verts,theta);
+  plot_tree(verts,3,30);
+  
+  newTree = zeros(size(verts,1)/10,1);
+  jj=1;
+  for ii=1:10:size(verts,1)
+      newTree(jj)=verts(ii,1)+1i*verts(ii,2);
+      jj=jj+1;
+  end
+  
+  %disp(newTree);
+  
+  Q=polygon(newTree.');
+  [newTreeVertices,newTreeEdgeHarmonicMeasures]=findHarmonicMeasure(P); % this doesnt apply to P since P is high degree!!!!
+  
+  
+  % NEED TO CREATE FUNCTION TO FIND HARMONIC MEASURE VALUES OF OPPOSITE
+  % SIDES FOR HIGH DEGREE TREES TO DO THE REST OF THIS COMPUTATION!!!
+  %{
+  
+  listVertices = newTree.'; % new analogue of newVertices (see above)
+  newPointer=zeros(size(listVertices,1),1);
+   for i=1:size(listVertices,1)
+       if i==1 || i==2
+           newPointer(i)=1;
+       else
+           newPointer(i)=i-1;
        end
-       
    end
+   newPointer = horzcat(newPointer,listVertices);
 
    
-   edgeHarmonicMeasures=zeros(size(v,1),1);
-   for i=size(v,1):-1:1
-       if i>1
-           edgeHarmonicMeasures(i)=abs(v(i)-v(i-1));
-       elseif (i==1) && (v(size(v,1))==2)
-           edgeHarmonicMeasures(i)=abs(v(1));
-       elseif (i==1) && (v(size(v,1))==0)
-           edgeHarmonicMeasures(i)=abs(v(1)-v(size(v,1)));
-       end       
-   end
-   
-   edgeHarmonicMeasures = flipud(edgeHarmonicMeasures);
-   MeasuresArrayTwoColumns = zeros(size(v,1),2);
-   
-   
-   w1 = flipud(vertex(P));
-   beta = 1 - flipud(angle(P));
-   [w1,beta] = scfix('de',w1,beta);
-   P = polygon(flipud(w1),1-flipud(beta));
-   
-   vertices=vertex(P); % list of vertices
-   
-   % convert p back to pointer (with new edges) to use pointer2match
-   newPointer = zeros(size(vertices,2),2); % new pointer
-   for i=1:size(vertices,1)
-       newPointer(i,2)=vertices(i);
-       if i>2
-           newPointer(i,1)=i-1;
-       else
-           newPointer(i,1)=1;
-       end
-   end
-   
-   disp(vertices);
-   disp(edgeHarmonicMeasures);
-   
+   % array of half edges with value 1 if harmonic measure at half-edge is 
+   % too large compared to harmonic measure of opposite half-edge.
    [match,starts,ends]=pointer2match(newPointer);
-   largeMeasures=zeros(size(match,1),1); % array of half edges with value 1 if harmonic measure at half-edge is too large compared to harmonic measure
-   % of opposite half-edge.
    
+   ratios=zeros(size(match,1),1); % harmonic measure ratios
+   
+   alreadyAdded=zeros(size(match,1),1); % already added to ratios list
+
    
    % find location of starting vertex
    indexStart=0;
-   for i=1:size(vertex(P),1)
-            if vertices(i)==start
+   for i=1:size(newPointer,1)
+            if newPointer(i,2)==start
                 indexStart=i;
             end
    end
@@ -102,62 +131,51 @@ function  approximateLineTree(pointer,num,numBranches,ratio)
            harmonicMsr1=edgeHarmonicMeasures(i);
            [index1,index2]=findVertices(v1,vertices);
            index=index1;
-           if (index1==i || index1==0)
+           
+           if (index1==i) 
                index=index2;
            end
-           
-           if index2==0
-               index=index1
+
+           if (index1==0 || index2==0)
+               index=i;
            end
            
-           if (index==n)
-               index=0;
+           if (index+1>n)
+               index=index-n;
            end
            
            harmonicMsr2=edgeHarmonicMeasures(index+1);
        end
        
-       if v1~=v2
-            [indexEdge1,indexEdge2]=findEdges(newPointer,v1,v2);
-            c1=indexEdge1-indexStart;
-            c2=indexEdge2-indexStart;
-            if c1<=0
-                c1=c1+size(vertices,1);
+       if v1~=v2 % this if should never be true?
+            [indexEdge1,indexEdge2]=findEdges(indexStart,match,newPointer,v1,v2);
+            
+            if alreadyAdded(indexEdge1)==0 & alreadyAdded(indexEdge2)==0
+                ratios(indexEdge1)=harmonicMsr1/harmonicMsr2;
+                ratios(indexEdge2)=harmonicMsr2/harmonicMsr1;
             end
-            if c2<=0
-                c2=c2+size(vertices,1);
-            end
-                        
-            if harmonicMsr1>ratio*harmonicMsr2
-              largeMeasures(c1)=1;
-            elseif harmonicMsr2>ratio*harmonicMsr1
-              largeMeasures(c2)=1;
-            end       
+            
+            alreadyAdded(indexEdge1)=1;
+            alreadyAdded(indexEdge2)=1;
                   
        end
        
    end
-       
-   % make the new tree with auxiliary edges in matching format.
    
-  newMatch = match;
-  counter = 0;
+   disp('L2 norm of ratios of new tree');
+   disp(norm(log(ratios)));
+   
+
+  %}
   
-  for i=1:size(largeMeasures,1)
-    if largeMeasures(i)>0
-        for j=1:numBranches
-            newMatch=insert_edge(newMatch,i+counter);
-        end 
-        counter = counter+2*numBranches; % change indexing to fit newly inserted edges.
-    end 
+  
+  %{
+  fid1 = fopen('verts.txt','w');
+  for ii=1:size(verts,1)
+    fprintf(fid1,'%f\t',verts(ii,:));
+    fprintf(fid1,'\n');
   end
-  
-  tree_verts=call_marshall2(newMatch);
-  theta=  -25 * pi/180;
-  verts=rotate_tree(tree_verts,theta);
-  plot_tree(verts,3,30);
-  
-       
+    %}   
    
    
    % fix v so that you don't have negative values
@@ -177,40 +195,6 @@ function  approximateLineTree(pointer,num,numBranches,ratio)
    
    end
 
-   %subfunction to find edge indices in pointer corresponding to certain
-   %vertices.
-   function [indexEdge1,indexEdge2]=findEdges(pointer,v1,v2)
-        indexEdge1=0;indexEdge2=0;
-        for i=1:size(pointer,1)
-            if i>1 && pointer(i,2)==v1 && pointer(i-1,2)==v2
-               indexEdge1=i-1;
-            elseif i==1 && pointer(i,2)==v1 && pointer(size(pointer,1),2)==v2
-                indexEdge1=size(pointer,1);
-            end
-        end
-        
-        for i=1:size(pointer,1)
-            if i>1 && pointer(i,2)==v2 && pointer(i-1,2)==v1
-                indexEdge2=i-1;
-            elseif i==1 && pointer(i,2)==v2 && pointer(size(pointer,1),2)==v1
-                indexEdge2=size(pointer,1);
-            end
-        end
-        
-   end
-   
-   %subfunction to find all locations of a certain vertex in the vertex
-   %list with repeated vertices returned by extermap.
-   function [index1,index2]=findVertices(v,vertices)
-        count=0;index1=0;index2=0;
-        for i=1:size(vertices,1)
-            if vertices(i)==v && count==0
-                index1=i; count=count+1;
-            elseif vertices(i)==v
-                index2=i;
-            end
-        end   
-   end
 
 
 
