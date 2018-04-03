@@ -1,4 +1,4 @@
-function  [match, largeMeasures,ratios]=getLargeMeasuresTree(pointer,num,ratio,start,listVertices,vertices,edgeHarmonicMeasures)
+function  [match, largeMeasures,ratios]=getLargeMeasuresTree(pointer,numAdded,num,ratio,start,listVertices,vertices,edgeHarmonicMeasures)
 % Function for finding harmonic measure values of edges of embedded planar
 % tree given in polygon format.
 %   INPUT:
@@ -15,6 +15,8 @@ function  [match, largeMeasures,ratios]=getLargeMeasuresTree(pointer,num,ratio,s
 %   ratios - 
    
     % convert p back to pointer (with new edges) to use pointer2match
+    %disp(listVertices);
+    
    newPointer=zeros(size(listVertices,1),1);
    for i=1:size(listVertices,1)
        if i==1
@@ -24,7 +26,12 @@ function  [match, largeMeasures,ratios]=getLargeMeasuresTree(pointer,num,ratio,s
        elseif mod(i,num)~=2
            newPointer(i)=i-1;
        else
-           newPointer(i)=(pointer((i-2)/num+2,1)-1)*num+1;
+           disp(i);
+           if (i-2)/num+2<=size(pointer,1)
+                newPointer(i)=(pointer((i-2)/num+2,1)-1)*num+1;
+           else
+                newPointer(i)=(pointer((i-2)/num+2-numAdded,1)-1)*num+1;
+           end
        end
    end
    
@@ -54,14 +61,22 @@ function  [match, largeMeasures,ratios]=getLargeMeasuresTree(pointer,num,ratio,s
    % change size to accomodate new vertices
    n=size(vertices,1);
    
+   disp(vertices);
+   
+   disp(edgeHarmonicMeasures);
+   
    % determine which half-edge pairs have imbalanced harmonic measure
    % through the use of 
    for ii=1:size(match,1)
        edge1=match(ii,1);
        edge2=match(ii,2);
-       vertex1=starts(ii);
-       vertex2=ends(ii);
+       vertex1=newPointer(starts(ii),2);
+       vertex2=newPointer(ends(ii),2);
        harmonicMsr1=0; harmonicMsr2=0;
+       %disp('this pair');
+       %disp(vertex1);
+       %disp(vertex2);
+       
        for jj=1:size(vertices,1)
            if jj<size(vertices,1) & vertices(jj)==vertex1 & vertices(jj+1)==vertex2
                harmonicMsr1=edgeHarmonicMeasures(jj+1);
@@ -78,13 +93,22 @@ function  [match, largeMeasures,ratios]=getLargeMeasuresTree(pointer,num,ratio,s
            end
        end
        
+       [indexEdge1,indexEdge2]=findEdges(indexStart,match,newPointer,vertex1,vertex2);
+
+       
        if harmonicMsr1>ratio*harmonicMsr2
-            largeMeasures(edge1)=1;
+            %disp('imbalance');
+            %disp(vertex1);
+            %disp(vertex2);
+            largeMeasures(indexEdge1)=1;
             ratios(indexEdge1)=harmonicMsr1/harmonicMsr2;
        elseif harmonicMsr2>ratio*harmonicMsr1
-            largeMeasures(edge2)=1;
+            %disp('imbalance');
+            %disp(vertex1);
+            %disp(vertex2);
+            largeMeasures(indexEdge2)=1;
             ratios(indexEdge2)=harmonicMsr2/harmonicMsr1;
-       end
+       end       
       
    end
 

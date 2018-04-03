@@ -2,10 +2,20 @@ function approximateTree(pointer,num,numBranches,ratio)
    start=pointer(1,2); % should be the root of the tree
    n=size(pointer,1);
    p=pointer(1,2);
-   
+   numAdded=0;
    for i=2:n
+       
+       if pointer(i-1,1)==pointer(i,1) & i~=2
+           point1=pointer(i-1,2);
+           point2=pointer(pointer(i-1,1),2);
+           zcents = point1+(1:num)*(point2-point1)/num;
+           p=horzcat(p,zcents);   
+           numAdded=numAdded+1;
+       end
+       
        point1 = pointer(pointer(i,1),2);
        point2 = pointer(i,2);
+       
        zcents = point1+(1:num)*(point2-point1)/num;
        p=horzcat(p,zcents);    
    end
@@ -13,11 +23,12 @@ function approximateTree(pointer,num,numBranches,ratio)
 
    p=horzcat(p,fliplr(p(1:size(p,2)-1)));
    p=p.';
+   disp(newVertices);
    P=polygon(p);
    
    [vertices,edgeHarmonicMeasures]=findHarmonicMeasureTree(P);
            
-   [match,largeMeasures,ratios]=getLargeMeasuresTree(pointer,num,ratio,start,newVertices,vertices,edgeHarmonicMeasures);
+   [match,largeMeasures,ratios]=getLargeMeasuresTree(pointer,numAdded,num,ratio,start,newVertices,vertices,edgeHarmonicMeasures);
 
    % make the new tree with auxiliary edges in matching format.
    
@@ -27,26 +38,27 @@ function approximateTree(pointer,num,numBranches,ratio)
   for i=1:size(largeMeasures,1)
     if largeMeasures(i)>0
         
-        
+        %disp('imbalance detected');
+        %{
         numBranchestoAdd = round(abs(log(ratios(i)))*numBranches/4);
 
         for j=1:numBranchestoAdd
             newMatch=insert_edge(newMatch,i+counter);            
         end 
-        
-        %{
+        %}
+
         for j=1:numBranches
             newMatch=insert_edge(newMatch,i+counter);            
         end 
-        %}
+        
         
                 
         %newMatch=insert_tree(newMatch,path(numBranches),i+counter);
         
         
-        % counter = counter+2*numBranches; % change indexing to fit newly inserted edges.
+         counter = counter+2*numBranches; % change indexing to fit newly inserted edges.
         
-        counter = counter+2*numBranchestoAdd; % change indexing to fit newly inserted edges.
+        %counter = counter+2*numBranchestoAdd; % change indexing to fit newly inserted edges.
     end 
   end
   
@@ -61,6 +73,7 @@ function approximateTree(pointer,num,numBranches,ratio)
       newTree(jj)=verts(ii,1)+1i*verts(ii,2);
       jj=jj+1;
   end
+   
   
   %disp(newTree);
   
