@@ -1,6 +1,16 @@
 % Tree should have one leaf node or one leaf node and one root.
 
 function approximateLineTree(pointer,num,numBranches,ratio)
+% Function for find true tree approximation of tree with one leaf node
+% (i.e., one leaf node and one root). 
+% INPUT:
+% pointer - tree in pointer format.
+% num - number of edges to divide each edge into for better harmonic
+% measure values.
+% numBranches - number of auxiliary edges to add at each location
+% with a harmonic measure imbalance.
+% ratio - threshold ratio to determine if there is a harmonic measure
+% imbalance.
    start=pointer(1,2); % should be a leaf node/root.
    n=size(pointer,1);
    p=pointer(1,2);
